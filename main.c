@@ -3,6 +3,7 @@
 
 void processArr();
 extern void computeArr(int *forceArr, int *distanceArr, int * calcArr, int arrSize);
+void createFile(int *calcArr, int arrSize);
 
 int main()
 {
@@ -51,9 +52,36 @@ void processArr(int arrSize)
     //SEND FUNCTION TO GPU
     computeArr(forceArr, distanceArr, calcArr, arrSize);
 
-    printf("The inner resulting array: \n");
+    free(forceArr);
+    free(distanceArr);
+
+    printf("Printing the inner resulting array: \n");
+
+    //OUTPUT THE MATCH SCORE ARRAY
+    createFile(calcArr, arrSize);
+
+    free(calcArr);
+}
+
+void createFile(int *calcArr, int arrSize)
+{
+    //DECLARE VARS
+    FILE *filep;
+    int i = 0;
+
+    //OPEN FILE
+    filep = fopen("force.txt", "w+");
+
+    //WRITE RESULTS TO FILE
     for (i = 0; i < arrSize; i ++)
     {
-        printf("%d \n", calcArr[i]);
+        fprintf(filep, "%d,", calcArr[i]);
     }
+
+    //CLOSE FILE
+    fclose(filep);
+
+    //LET USER KNOW PROGRAM IS DONE
+    printf("file created \n");
 }
+
