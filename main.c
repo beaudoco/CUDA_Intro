@@ -51,8 +51,9 @@ void processArr(int arrSize)
     //SEND FUNCTION TO GPU
     computeArr(forceArr, distanceArr, calcArr, arrSize);
 
+    printf("The inner resulting array: \n");
     for (i = 0; i < arrSize; i ++)
     {
-        printf("%d", calcArr[i]);
+        printf("%d \n", calcArr[i]);
     }
 }
