@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 void processArr();
-extern void computeArr(int *forceArr, int *distanceArr, int * calcArr, int arrSize);
+extern void computeArr(int * calcArr, int arrSize);
 void createFile(int *calcArr, int arrSize);
 
 int main()
@@ -25,12 +26,19 @@ void processArr(int arrSize)
     int *forceArr = NULL;
     int *distanceArr = NULL;
     int *calcArr = NULL;
-    int i = 0;
-    int j = 0;
+    int *calcCPUArr = NULL;
+    int i = 0, j = 0;
+    unsigned long long int scalar = 0;
+    unsigned long long int scalarCPU = 0;
 
     forceArr = malloc(sizeof(int) * arrSize);
     distanceArr = malloc(sizeof(int) * arrSize);
     calcArr = malloc(sizeof(int) * arrSize);
+    calcCPUArr = malloc(sizeof(int) * arrSize);
+
+    //SETUP TIMER FOR FILE
+    struct timespec begin, end;
+    clock_gettime(CLOCK_REALTIME, &begin);
 
     for (i = 0; i < arrSize; i ++)
     {
@@ -47,13 +55,38 @@ void processArr(int arrSize)
         {
             forceArr[i] = j--;
         }
+
+        calcCPUArr[i] = distanceArr[i] * forceArr[i];
+
+        scalarCPU += calcCPUArr[i];
     }
 
-    //SEND FUNCTION TO GPU
-    computeArr(forceArr, distanceArr, calcArr, arrSize);
+    //END CLOCK AND GET TIME
+    clock_gettime(CLOCK_REALTIME, &end);
+    long seconds = end.tv_sec - begin.tv_sec;
+    long nanoseconds = end.tv_nsec - begin.tv_nsec;
+    double elapsed = seconds + nanoseconds*1e-9;
 
     free(forceArr);
     free(distanceArr);
+
+    //SETUP TIMER FOR FILE
+    struct timespec begin2, end2;
+    clock_gettime(CLOCK_REALTIME, &begin2);
+
+    //SEND FUNCTION TO GPU
+    computeArr(calcArr, arrSize);
+
+    for (i = 0; i < arrSize; i ++)
+    {
+        scalar += calcArr[i];
+    }
+
+    //END CLOCK AND GET TIME
+    clock_gettime(CLOCK_REALTIME, &end2);
+    long seconds2 = end2.tv_sec - begin2.tv_sec;
+    long nanoseconds2 = end2.tv_nsec - begin2.tv_nsec;
+    double elapsed2 = seconds2 + nanoseconds2*1e-9;
 
     printf("Printing the inner resulting array: \n");
 
@@ -61,6 +94,13 @@ void processArr(int arrSize)
     createFile(calcArr, arrSize);
 
     free(calcArr);
+    free(calcCPUArr);
+
+    printf("The scalar value of the system is: %lld \n", scalar);
+    printf("time taken for GPU: %f\n",elapsed2);
+
+    printf("The scalar value of the system is: %lld \n", scalarCPU);
+    printf("time taken for CPU: %f\n",elapsed);
 }
 
 void createFile(int *calcArr, int arrSize)
