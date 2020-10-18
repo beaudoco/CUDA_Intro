@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 
-#define THREADS_PER_BLOCK 512
+#define THREADS_PER_BLOCK 1024
  
 __global__ void compute_d (int *a_d, int *b_d, int *c_d, int n)
 {
